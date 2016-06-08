@@ -1,10 +1,10 @@
 package com.ishow.androidlibs.activity;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 
 import com.ishow.androidlibs.R;
 import com.ishow.androidlibs.fragment.CubeFragment;
@@ -12,7 +12,7 @@ import com.ishow.androidlibs.fragment.CubeFragment;
 /**
  * Created by huangxuanheng on 2016/1/5.
  */
-public abstract class BaseActivity extends AppCompatActivity implements View.OnClickListener{
+public abstract class BaseActivity extends AppCompatActivity{
 
     public FragmentManager fm;
     private CubeFragment currentFragment;
@@ -49,7 +49,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         if(fragment.isAdded()){
             ft.show(fragment);
         }else {
-            ft.add(R.id.fab, fragment, tag);
+            ft.add(R.id.fl_activity_container, fragment, tag);
         }
         currentFragment=fragment;
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
@@ -76,6 +76,31 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     }
 
     /**
+     * 携带数据回到栈中的前一个fragment
+     * @param data 携带的数据
+     */
+    public void popTopFragment(Object data){
+        fm.popBackStackImmediate();
+        if(tryToUpdateCurrentAfterPop()){
+            currentFragment.onBackWithData(data);
+        }
+    }
+
+    //在Pop之后更新当前fragment，如果更新成功则返回true,否则false
+    private boolean tryToUpdateCurrentAfterPop() {
+        int backStackEntryCount = fm.getBackStackEntryCount();
+        if(backStackEntryCount>0){
+            String name = fm.getBackStackEntryAt(backStackEntryCount - 1).getName();
+            Fragment fragment = fm.findFragmentByTag(name);
+            if(fragment!=null && fragment instanceof CubeFragment){
+                currentFragment= (CubeFragment) fragment;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 根据指定的字节码获取当前activity栈中对应包名tag的fragment
      * @param cls 指定的字节码
      * @return
@@ -98,31 +123,24 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
      */
     @Override
     public void onBackPressed() {
-        clickBack();
+        if(currentFragment !=null&&currentFragment.backPressed()){
+            return;
+        }
+        backPressed();
     }
 
     /**
      * fragment回退
      */
-    public void clickBack() {
-        if(currentFragment !=null&&currentFragment.backPressed()){
-            return;
-        }
+    public void backPressed() {
         int count = fm.getBackStackEntryCount();
         if (count <= 1) {
             finish();
         } else {
-            if(currentFragment!=null){
+            fm.popBackStackImmediate();
+            if(tryToUpdateCurrentAfterPop()){
                 currentFragment.onBack();
             }
-            fm.popBackStack();
         }
-
-    }
-
-
-    @Override
-    public void onClick(View v) {
-        clickBack();
     }
 }

@@ -15,17 +15,17 @@ import com.ishow.androidlibs.activity.BaseActivity;
 public interface ICubeFragment {
 
     /**
-     * before a new fragment open and the current fragment will be call onLeave
+     * before a new fragment add and the current fragment will be call onLeave
      * */
     void onLeave();
 
     /**
-     * the current fragment when go back will be call,it was
+     * the method will be call by fragment who after pop and now on the stack top
      */
     void onBack();
 
     /**
-     * when open a fragment which top had some fragment in the stack and now jump to this fragment ,
+     * it is had some fragment in the stack ,and when pop to a fragment which need to back with data
      * <p>this method will be call </p>
      * @param object
      */
